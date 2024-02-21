@@ -37,6 +37,7 @@ namespace IpInfo.Api.Controllers
         /// <response code="500">Если произошла внутренняя ошибка</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{ip}")]
         public async Task<IActionResult> GetIpInfo(string ip)
         {
