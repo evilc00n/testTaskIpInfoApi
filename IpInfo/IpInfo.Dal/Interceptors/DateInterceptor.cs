@@ -28,26 +28,5 @@ namespace IpInfo.Dal.Interceptors
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
-        public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
-        {
-            var dbContext = eventData.Context;
-
-            if (dbContext == null)
-            {
-                base.SavingChanges(eventData, result);
-            }
-
-            var entries = dbContext.ChangeTracker.Entries<IAuditable>();
-
-            foreach (var entry in entries)
-            {
-                if (entry.State == EntityState.Added)
-                {
-                    entry.Property(x => x.RequestTime).CurrentValue = DateTime.UtcNow;
-                }
-            }
-
-            return base.SavingChanges(eventData, result);
-        }
     }
 }

@@ -1,5 +1,9 @@
 ﻿namespace IpInfo.Domain.Result
 {
+
+    /// <summary>
+    /// Нужен для удобного представления данных из одной части приложения в другую
+    /// </summary>
     public class BaseResult
     {
         public string ErrorMessage { get; set; }
@@ -8,6 +12,7 @@
         public int ErrorCode { get; set; }
 
     }
+
 
     public class BaseResult<T> : BaseResult
     {

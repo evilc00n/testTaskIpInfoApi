@@ -68,5 +68,14 @@ namespace IpInfo.Application.Resources {
                 return ResourceManager.GetString("InternalServerError", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid ip format.
+        /// </summary>
+        internal static string InvalidIpFormat {
+            get {
+                return ResourceManager.GetString("InvalidIpFormat", resourceCulture);
+            }
+        }
     }
 }

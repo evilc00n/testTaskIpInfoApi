@@ -1,10 +1,12 @@
 ﻿using IpInfo.Application.Resources;
 using IpInfo.Domain.Enum;
+using IpInfo.Domain.Interfaces;
 using IpInfo.Domain.Interfaces.Repositories;
 using IpInfo.Domain.Interfaces.Services;
 using IpInfo.Domain.Models;
 using IpInfo.Domain.Result;
 using Serilog;
+using System.Text.Json;
 
 
 namespace IpInfo.Application.Services
@@ -14,16 +16,23 @@ namespace IpInfo.Application.Services
         private readonly IBaseRepository<IpInfoEntity> _IpInfoRepository;
         private readonly IHttpApiClient _httpApiClient;
         private readonly ILogger _logger;
+        private readonly IConnectionAdressConfig _connectionAdressConfig;
 
-        public DataService(IBaseRepository<IpInfoEntity> ipInfoRepository, 
-            IHttpApiClient httpApiClient, ILogger logger)
+        public DataService(IBaseRepository<IpInfoEntity> ipInfoRepository,
+            IHttpApiClient httpApiClient, ILogger logger, 
+            IConnectionAdressConfig connectionAdressConfig)
         {
-            _IpInfoRepository = ipInfoRepository 
+            _IpInfoRepository = ipInfoRepository
                 ?? throw new ArgumentNullException(nameof(ipInfoRepository));
-            _httpApiClient = httpApiClient 
+
+            _httpApiClient = httpApiClient
                 ?? throw new ArgumentNullException(nameof(_httpApiClient));
-            _logger = logger 
+
+            _logger = logger
                 ?? throw new ArgumentNullException(nameof(logger));
+
+            _connectionAdressConfig = connectionAdressConfig
+                ?? throw new ArgumentNullException(nameof(connectionAdressConfig));
         }
 
         /// <inheritdoc />
@@ -44,7 +53,7 @@ namespace IpInfo.Application.Services
                 var ipInfo = new IpInfoEntity()
                 {
                     IpAddress = ip,
-                    InfoData = Data
+                    InfoData = JsonDocument.Parse(Data)
                 };
                 await _IpInfoRepository.CreateAsync(ipInfo);
                 return new BaseResult();
@@ -60,16 +69,32 @@ namespace IpInfo.Application.Services
             }
         }
 
-        /// <inheritdoc />
-        public async Task<BaseResult<string>> GetDataAsync(string uri)
+        /// <inheritdoc/>
+        public async Task<BaseResult<string>> GetDataAsync(string ip)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(uri))
+
+                if (string.IsNullOrWhiteSpace(ip))
                 {
-                    throw new ArgumentNullException(nameof(uri));
+                    return new BaseResult<string>
+                    {
+                        ErrorMessage = ErrorMessage.InvalidIpFormat,
+                        ErrorCode = (int)ErrorCodes.InvalidIpFormat
+                    };
                 }
 
+                if (!IsIpAddress(ip))
+                {
+                    return new BaseResult<string>
+                    {
+                        ErrorMessage = ErrorMessage.InvalidIpFormat,
+                        ErrorCode = (int)ErrorCodes.InvalidIpFormat
+                    };
+                }
+
+
+                string uri = string.Format(_connectionAdressConfig.ConnectionString, ip);
 
                 string result = await _httpApiClient.GetAsync(uri);    
                 if (result == null)
@@ -92,6 +117,38 @@ namespace IpInfo.Application.Services
                     ErrorCode = (int)ErrorCodes.InternarServerError
                 };
             }
+        }
+
+        /// <summary>
+        /// Проверка на валидность IP адреса
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private bool IsIpAddress(string input)
+        {
+
+            string[] splitValues = input.Split('.');
+            if (splitValues.Length != 4)
+            {
+                return false;
+            }
+
+            byte tempForParsing;
+
+            foreach (string r in splitValues)
+            {
+                if (r.Length > 1 && r.StartsWith("0"))
+                {
+                    return false;
+                }
+
+                if (!byte.TryParse(r, out tempForParsing))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
 

@@ -11,6 +11,8 @@ namespace IpInfo.Dal.Services
         {
             _httpClient = httpClient;
         }
+
+        /// <inheritdoc/>
         public async Task<string> GetAsync(string requestUri)
         {
             var response = await _httpClient.GetAsync(requestUri);

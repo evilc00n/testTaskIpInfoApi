@@ -120,4 +120,7 @@
   <data name="InternalServerError" xml:space="preserve">
     <value>Internal Server Error</value>
   </data>
+  <data name="InvalidIpFormat" xml:space="preserve">
+    <value>Invalid ip format</value>
+  </data>
 </root>

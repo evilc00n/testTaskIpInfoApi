@@ -15,11 +15,21 @@ namespace IpInfo.Dal.DependencyInjection
     {
         public static void AddDataAccessLayer(this IServiceCollection services, IConfiguration configuration)
         {
+
+
+            //задание строки подключения из одного из источников configuration 
+            //(например, secret.json или переменная среды)
             var connectionStringPostgres = configuration.GetConnectionString("PostgresSQL");
 
+            //т.к. всё что делает интерцептор - заполняет поле с датой, то регистрируется как синглтон
             services.AddSingleton<DateInterceptor>();
+
+            //аналогично с строкой подключения для БД
             var connectionStringHttp = configuration.GetConnectionString("ConnectionAdress");
 
+            //Сервис для конфигурации http запросов. Конкретно в данном случае в нём содержится лишь поле
+            //со строкой подключения, которая нужна для подклчючения к сайту, чтобы не хардкодить её в методе
+            //т.к. сервис предоставляет доступ к одному сайту для всех запросов, то объект регистрируется как синглтон 
             services.AddSingleton<IConnectionAdressConfig>
                 (new ConnectinAdressConfig { ConnectionString = connectionStringHttp });
 
@@ -27,6 +37,8 @@ namespace IpInfo.Dal.DependencyInjection
             {
                 options.UseNpgsql(connectionStringPostgres);
             });
+
+
             services.InitRepositories();
             services.InitServices();
         }
